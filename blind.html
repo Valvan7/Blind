@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Blind</title>
+	<meta charset="utf-8"/>
+	<style type="text/css">
+html
+{
+	color: #FFF;
+	background-color: #000;
+
+	font-size: 2vw;
+	font-family: Corbel;
+	font-weight: bold;
+	text-shadow:  0.1em  0.1em 0.1em #000,
+                  0.1em -0.1em 0.1em #000,
+                 -0.1em  0.1em 0.1em #000,
+                 -0.1em -0.1em 0.1em #000,
+                  0.1em  0     0.1em #000,
+                  0      0.1em 0.1em #000,
+                 -0.1em  0     0.1em #000,
+                  0     -0.1em 0.1em #000;
+}
+
+body
+{
+	margin: 0;
+	padding: 0;
+
+	overflow: hidden;
+}
+
+canvas
+{
+	position: fixed;
+	top: -5vw;
+	left: -5vw;
+	width: 105vw;
+	height: calc(100vw * 9 / 16 + 5vw);
+
+	z-index: -1;
+	/*filter: blur(0.3vw);*/
+}
+
+article
+{
+	height: calc(100vw * 9 / 16);
+	overflow-y: scroll;
+}
+
+h1
+{
+	color: #B08;
+
+	font-size: 2.5em;
+	text-align: center;
+}
+
+h2
+{
+	margin-left: 5vw;
+}
+
+article > div
+{
+	margin: 0 10vw 5vw;
+	padding-bottom: 5vw;
+
+	text-align: justify;
+
+	border-bottom: solid 0.45vw;
+}
+
+[onclick]
+{
+	display: inline-block;
+
+	cursor: pointer;
+}
+
+#Alertes ul
+{
+	margin: 2vw 0 4vw;
+	margin-bottom:;
+	padding: 0;
+
+	text-align: left;
+	list-style-type: none;
+}
+
+
+#Alertes li
+{
+	display: inline-block;
+	margin: 1vw 2vw 1vw 0;
+	padding: 1vw 1.5vw;
+
+	background-color: #0008;
+
+	border: solid 0.2vw;
+	border-radius: 2vw;
+}
+
+#Alertes li:not(.no):after
+{
+	content: " !";
+}
+
+	</style>
+</head>
+<body>
+	<canvas id="particules"></canvas>
+	<script type="text/javascript">
+const canvas = document.getElementById('particules');
+const ctx = canvas.getContext('2d');
+
+canvas.width = 1920;
+canvas.height = 1080;
+
+const FPS = 120;
+const myInterval = setInterval(() =>
+{
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+	particules.forEach((p)=>{ p.move() });
+	particules.forEach((p)=>{ p.draw() });
+}, 1000/FPS);
+
+
+function Particule(m, p)
+{
+	this.motion = m;
+	this.position = p;
+	this.toSin = Math.random();
+
+	this.regenerate = function()
+	{
+		if (this.position.x > canvas.width + this.position.z)
+		{
+			this.position.x = - this.position.z;
+			this.position.y = Math.random() * canvas.height;
+		}
+		else if (this.position.x < - this.position.z)
+		{
+			this.position.x = canvas.width + this.position.z;
+			this.position.y = Math.random() * canvas.height;
+		}
+		else if (this.position.y > canvas.height + this.position.z)
+		{
+			this.position.x = Math.random() * canvas.width;
+			this.position.y = - this.position.z;
+		}
+		else if (this.position.y < - this.position.z)
+		{
+			this.position.x = Math.random() * canvas.width;
+			this.position.y = canvas.height + this.position.z;
+		}
+	}
+
+	this.move = function()
+	{
+		this.position.x += this.motion.x
+		this.position.y += this.motion.y * Math.sin(this.toSin);
+		this.position.z += this.motion.z;
+
+		this.toSin += 0.007;
+		this.regenerate();
+	}
+
+	this.draw = function()
+	{
+		// ctx.beginPath();
+		// ctx.arc(this.position.x, this.position.y, this.position.z, 0, 2 * Math.PI);
+		// ctx.fillStyle = "rgba(0, 50, 255)";
+		// ctx.fill();
+		color = [ 255 - this.position.x * 127 / canvas.width - (this.position.z - 22.5)*3,
+				  0,
+				  63 + this.position.x * 127 / canvas.width + (this.position.z - 22.5)*3 ]
+
+		degrade = ctx.createRadialGradient(
+			this.position.x, this.position.y, 0,
+			this.position.x, this.position.y, this.position.z );
+		degrade.addColorStop(0, "rgba("+ color +", 0.8)");
+		degrade.addColorStop(0.7, "rgba("+ color +", 0.7)");
+		degrade.addColorStop(1, "rgba("+ color +", 0)");
+		ctx.fillStyle = degrade;
+		ctx.fillRect(this.position.x - this.position.z,
+			this.position.y - this.position.z,
+			this.position.x + this.position.z,
+			this.position.y + this.position.z);
+	}
+}
+
+
+let particules = []
+for (var i = 0; i < 200; i += 1)
+{
+	const position = {
+		x: Math.random() * canvas.width,
+		y: Math.random() * canvas.height,
+		z: 15 + Math.random() * 15
+	};
+
+	const uniRand = Math.random()
+
+	const motion = {
+		x: Math.random() * 0.1 + 0.1,
+		y: Math.random() * 0.1 - 0.05 ,
+		z: 0
+	};
+
+	particules.push( new Particule(motion, position, 5) );
+}
+	</script>
+
+
+
+	<article>
+
+		<div>
+			<h1>Projet</h1>
+				Le projet Blind consiste en la création d'un jeu vidéo de rythme accessible même
+				aux personnes malvoyantes, aveugles, ou n'ayant juste pas accès à leur écran. 
+
+			<h2>Genre</h2>
+				Ce jeu sera un jeu de rythme rogue-like. Chaque partie est générée et différente.
+				Aussi, la mort est permanente, et l'apprentissage des mécaniques de gameplay au fil
+				des parties un point clef du genre.<br>
+
+				Principalement inspiré de la série des <em>Rhythm Heaven</em>, le jeu demande au
+				joueur de répondre à des alertes sonores au bon moment en suivant la musique. La
+				comparaison s'arrête ici car le joueur aura à gérer une barre de vie, un
+				inventaire, ainsi que d'autres éléments plus classiques du domaine vidéoludique.<br>
+
+				Ici, la nature du rogue-like proposant des partie générées aléatoirement ne modifie
+				pas uniquement les différentes alertes jouées lors de la musique; Les objets que
+				proposera le marchand le seront aussi.
+
+			<h2>Subtilités</h2>
+				À travers un jeu ne proposant pas d'interface graphique, afficher la barre de vie
+				du joueur, son inventaire et tous autres éléments habituels des jeux vidéo n'est
+				pas envisageable d'une manière traditionnelle. Énoncer ces valeurs à l'oral
+				demanderait un travail trop conséquent.<br>
+
+				Toutes ces données, bien qu'existantes ne seront juste pas citées dans le jeu. Si
+				le joueur n'a pas assez d'argent, l'achat sera automatiquement refusé; Les dégâts
+				subis seront reflétés par des sons équivalents au tintement d'oreilles; etc.
+
+			<h2>Cohérence</h2>
+				Ce jeu évoluera dans un univers le plus cohérent possible. Un protagoniste aveugle
+				et muet permet de coller à l'absence d'interface graphique.<br>
+
+				La musique accompagnant le protagoniste et son ami tout au long du jeu sera donc
+				diégétique et sortira la plupart du temps d'un petit lecteur radio. Celui-ci
+				possède aussi une barre de vie. La qualité de la musique pourra donc être altérée
+				et ajouter une forme de difficulté.
+
+		</div>
+
+		<div>
+			<h1>Personnages</h1>
+				Les personnages ne sont pas nommés. Tous sont désignés par le genre masculin. Ce
+				dernier, s'il devient important pour l'histoire sera déterminé en partie par le
+				doubleur du personnage associé.
+
+			<h2>Protagoniste</h2>
+				Aveugle mais aussi muet, il reste en permanence avec son ami pour être guidé.
+				Grâce à son aide, se déplacer en rythme est la meilleure stratégie qu'il a réussi
+				à établir pour interagir avec le monde qui l'entoure.<br>
+
+				Il est aujourd'hui décidé à passer un grand cap: Explorer la caverne du Nord à la
+				recherche de pierres précieuses.
+
+
+			<h2>Ami</h2>
+				Bien qu'il soit voyant, l'ami du protagoniste a lui aussi quelques handicaps. Ses
+				troubles psychomoteurs l'empêchent de se déplacer efficacement. Capable d'attraper
+				toutes sortes d'objets, il reste un excellent élément de l'équipe.<br>
+
+				Il a toujours avec lui une petite radio qui lui permet de facilement guider son
+				ami au rythme de la musique.
+
+
+			<h2>Boss de la caverne du Nord</h2>
+				Armée d'une épée, il se bat "toujours" de manière juste pour protéger son trésor.
+				Il vit dans la caverne du Nord. Il n'est pas tout au fond, mais est suffisamment
+				éloigné de la surface pour ne pas être dérangé très souvent.<br>
+
+				Au début de son combat face au protagoniste, ce dernier se retrouvera séparé de
+				son ami, ce qui forcera le boss à annoncer ses coups afin de rendre le combat
+				plus juste. Une fois en difficulté face au protagoniste, il commencera à ne plus
+				respecter ses principes et finira par ne plus rien annoncer. Le marchand réussira
+				à ce moment à le rejoindre pour l'aider malgré une distance notable.
+
+			<h2>Marchand</h2>
+				Souvent seul dans ses expéditions, il croise régulièrement le protagoniste. Il
+				proposera d'échanger quelques pierres contre des objets qui pourront aider à
+				progresser plus aisément... ou pas. Sa marchandise créée de lui même n'est pas
+				toujours extrêmement fiable.<br>
+
+				Sa relation avec le protagoniste et son ami l'aura poussé à lui aussi aimer se
+				déplacer en rythme. C'est devenu un réflexe pour lui.
+
+		</div>
+
+		<div>
+			<h1>Composition</h1>
+				Quelques restrictions s'appliquent aux compositions:
+				<ul>
+					<li>Tout son rare et isolé doit être évité, afin qu'il ne soit pas confondu
+					avec les alertes. Dans la majorité des cas, la composition doit être pensée
+					pour que les alertes soient parfaitement audibles.</li>
+					<li>Dans le cas où la restriction précédente n'est pas respectée (rupture dans
+					la musique, changement d'ambiance, perturbation ayant pour but de simplement
+					ajouter de la difficulté, ...) chacun de ces passages devra être précisé afin
+					de pouvoir correctement intégrer les alertes dans la musique lors de leur
+					génération.</li>
+					<li>Le BPM doit être constant. S'il doit changer à un moment, la musique devra
+					être composée sur le BPM de départ, et le changement s'appliquera directement
+					dans le code. Il suffira de préciser la nouvelle valeur du BPM, ainsi que le
+					moment du changement (et éventuellement sa durée de transition).</li>
+				</ul>
+
+		</div>
+
+
+		<div>
+			<h1>Textes</h1>
+
+			Sélectionner le personnage:
+			<h2 class="Ami" onclick="select('Ami')">Ami</h2>
+			<h2 class="Boss" onclick="select('Boss')">Boss</h2>
+			<h2 class="Marchand" onclick="select('Marchand')">Marchand</h2>
+
+			<script type="text/javascript">
+				select = (c) => { document.getElementById("select").innerHTML = "."+ c +" { color: #B8F; }"; };
+			</script>
+			<style type='text/css' id="select"></style>
+
+			<h2>Introduction</h2>
+			<ul>
+				<li class="Ami">Hey. Hey! Réveille-toi. HEY !!!</li>
+				<li class="Ami">C'est pas trop tôt ! Aujourd'hui on part explorer la caverne du nord. Tu te souviens ?</li>
+				<li class="Ami">Bien, cela risque d'être difficile. Commençons par un échauffement. Commençons simplement par sauter !</li>
+				<li class="Ami">Essaie de trouver une seule et unique façon de sauter. Sinon cela risque d'être compliqué.</li>
+				<li class="Ami">Wow, ce saut était différent du premier. Tu peux sauter encore, s'il te plaît ?</li>
+				<li class="Ami">Ok, et si on enchaînait avec quelques squats ?</li>
+				<li class="Ami">Non, te baisser, pas sauter !</li>
+				<li class="Ami">Tu t'es baissé d'une manière bien différente de la précédente.</li>
+				<li class="Ami">Essaies de te baisser d'une seule et unique manière, cela sera plus simple pour la suite.</li>
+				<li class="Marchand">Hé les amis ! </li>
+				<li class="Ami">Salut ! Où cours-tu ainsi ?</li>
+				<li class="Marchand">Je vais tenter d'aller collecter quelques pierres précieuses dans la caverne du Nord. J'ai créé quelques gadgets qui devraient m'aider à explorer</li>
+				<li class="Ami">Cool ! Nous y allons aussi. Nous finissons d'abord nos préparatifs.</li>
+				<li class="Marchand">À tout à l'heure alors !</li>
+				<li class="Ami">Maintenant, faisons un dernier entraînement à l'épée. Comme d'habitude ! Je préviens un coup, et à toi de le contrer en fonction de mon annonce.</li>
+				<li class="Ami">C'était pas mal. Maintenant on peut y aller. Comme d'habitude: cours tout droit, et je te guiderai au son de ma voix.</li>
+				<li class="Ami">Bien, l'entrée n'est plus qu'à quelques mètres. Nous pouvons passer par la gauche, mais quelques trous rendent le terrain difficilement pratiquable. Nous pouvons aussi contourner par la droite... Alors, on va où ?</li>
+				<li class="Ami">Ok, je crois qu'il est temps d'allumer la radio.</li>
+			</ul>
+
+			<h2>Entrainement - Sauts et Esquive</h2>
+			<ul>
+				<li class="Ami">Cours tout droit et à mon signal, saute ! Ne t'en fais pas, je vais te l'annoncer un temps avant.</li>
+				<li class="Ami">Attention, quelques trous en face sont très rapprochés ! Il va te falloir sauter deux temps de suite.</li>
+				<li class="Ami">Bien ! Plus qu'une étape avant d'y arriver... Cela sera compliqué. À mon signal, saute 3 fois, rapidement !</li>
+				<li class="Ami">Oh ! Un arbre ! À mon signal, baisse toi pour esquiver ses branches !</li>
+
+			</ul>
+
+			<h2>Caverne du Nord - Entrée</h2>
+			<ul>
+				<li class="Ami">Voici donc l'entrée de la caverne du Nord. Il est trop tard pour reculer. Es-tu prêt ?</li>
+			</ul>
+
+			<h2>Caverne du Nord - Marchand</h2>
+			<ul>
+				<li class="Marchand">Oh ! Vous voilà !</li>
+				<li class="Ami">Tout se basse bien jusque là ?</li>
+				<li class="Marchand">Le gadget que j'ai pris aujourd'hui dysfonctionne. Il est sensé ralentir le tempo de la musique et me permettre des mouvements plus précis, mais l'effet inverse s'est produit. Aidez moi et prenez le avec vous, je vous donnerai une partie de mes pierres précieuses en compensation.</li>
+				<li class="Marchand">Le gadget que j'ai pris aujourd'hui m'aide beaucoup dans mon exploration. Mais les meilleures pierres précieuses sont trop hautes pour moi.</li>
+				<li class="Ami">Et à quoi sert donc celui là ?</li>
+				<li class="Marchand">Ce gadget se branche sur la radio ralentit le tempo de la musique. Cela m'aide à faire des mouvements plus précis.</li>
+				<li class="Marchand">C'est une armure qui me rend plus résistant. J'encaisse plus facilement les dégâts généraux que je subis.</li>
+				<li class="Marchand">C'est un casque qui me rend plus résistant. Il m'immunise aux dégâts venant d'en haut.</li>
+				<li class="Marchand">Ce sont des bottes qui me rendent plus résistant. Elles me permettent de marcher plus aisément sur les terrains accidentés.</li>
+				<li class="Marchand">Si vous le souhaitez, je peux vous l'échanger contre quelques pierres.</li>
+				<li class="Ami">Cela peut être intéressant, mais nous n'avons pas assez pour pouvoir te l'acheter.</li>
+				<li class="Marchand">Si vous avez coupé quelques lianes ou racines, je peux les utiliser pour en faire de quoi soigner vos éventuelles blessures.</li>
+				<li class="Ami">Il est temps de nous remettre en route. À plus tard !</li>
+				<li class="Marchand">Salut !</li>
+			</ul>
+
+			<h2>Entrainement - Mur et Glissade</h2>
+			<ul>
+				<li class="Ami">Là bas ! Un mur ! Il va falloir que tu fasses un saut mural. À mon signal, saute et reste agrippé. Et quand je le dirais, relache toute l'énergie que tu auras accumulée.</li>
+				<li class="Ami">Agrippe toi un temps après mon signal.</li>
+				<li class="Ami">Attends mon signal avant de sauter.</li>
+				<li class="Ami">Le passage au loin est très étroit et s'étend sur la distance. À mon signal, baisse toi pour glisser, et ne relève toi que quand je te préviens.</li>
+				<li class="Ami">Baisse toi un temps après mon signal.</li>
+				<li class="Ami">Attends mon signal avant de te relever.</li>
+			</ul>
+
+			<h2>Caverne du Nord - Boss</h2>
+			<ul>
+				<li class="Ami">Attention ! Il y a de gros éboulements !</li>
+				<li class="Ami"><em>Cris (qui seront de plus en plus distants) suite à la séparation progressive du protagoniste et de son ami lors de l'éboulement.</em></li>
+				<li class="Boss">Mais qui voilà ? Aurais-je de la visite ? Cela fait un moment que quelqu'un n'est venu tenter de prendre mon trésor. Hum ? Aveugle à ce que je vois. Très bien, je suis quelqu'un d'extrêmement juste, je t'annoncerai donc mes coups à l'avance. Mais ne t'attends pas à ce que je me retienne ! Prêt ? Tu ne souhaite pas répondre ? Tant pis !</li>
+				<li class="Boss">Humpf... Coriace... Je ne peux pas perdre. Surtout face à une personne comme toi ! Je pense que je n'ai plus le choix...</li>
+				<li class="Marchand">Je suis là !</li>
+				<li class="Boss">Quoi !?</li>
+			</ul>
+
+			<h2>Caverne du Nord - Fin</h2>
+			<ul>
+				<li class="Boss">Arf... Tu ne gagneras pas la prochaine fois !</li>
+				<li class="Marchand">C'est la fuite ! Bien joué ! Un  instant, je descends te rejoindre.</li>
+				<li class="Ami"><em>(essoufflé)</em> Vous êtes là ! Tout va bien ?</li>
+				<li class="Marchand">Maintenant oui, ne t'en fais pas. Venez là, je vais soigner vos blessures</li>
+			</ul>
+
+		</div>
+
+		<div id="Alertes">
+			<h1>Alertes</h1>
+
+				Les alertes sont majoritairement des cris régulièrements lancés lors d'une partie
+				indiquant au joueur d'effectuer une action.<br>
+
+				Plusieurs versions de la même alerte doivent être enregistrées. Souvent utilisées,
+				les multiples versions permettent de faire plus naturel, et de lasser moins vite le
+				joueur.
+
+			<h2>Ami</h2>
+			<ul>
+				<li>Un</li>
+				<li>Deux</li>
+				<li>Trois</li>
+				<li>Quatre</li>
+				<li>Cinq</li>
+				<br>
+
+				<li>Fois</li>
+				<br>
+
+				<li>Bas</li>
+				<li>Gauche</li>
+				<li>Droit</li>
+				<li>Droite</li>
+				<br>
+
+				<li>Saute</li>
+				<li>Double</li>
+				<li>Triple</li>
+				<li>Saut</li>
+				<br>
+
+				<li>Es(quive)</li>
+				<li>(Es)quive</li>(En deux parties)
+				<br>
+
+				<li>Glisse</li>
+				<li>Mur</li>
+				<li>Et</li>
+				<li>Hop</li>
+				<br>
+
+				<li>Maintenant</li>(Rapide, presque monosyllabique)
+				<br>
+
+				<!-- <li>Un monstre</li> -->
+				<li>Terrain rude</li>
+				<li>Des racines</li>
+				<li>Des lianes</li>
+				<li>Un éboulement</li>
+				<br>
+
+				<li>Allez</li>
+				<li>Encore</li>
+				<li>Ok</li>
+				<br>
+
+				<li>Super, Bien, Génial, Excellent</li>(Réussite)
+				<br>
+
+				<li>Attention, 'tention, Oups, Wow</li>(Presque)
+				<br>
+
+				<li>Aïe, Ouch, Ouf</li>(Échec)
+			</ul>
+
+			Les suivants n'ont besoin que de deux ou trois versions.
+			<ul>
+				<li>C'est parti</li>
+				<li>Un dernier</li>
+				<li>Concentre-toi</li>
+				<br>
+
+				<li class="no">Pourquoi pas qu'en dis-tu ?</li>
+				<li class="no">C'est d'accord !</li>
+				<li class="no">Désolé, on va te le laisser.</li>
+				<li class="no">Non, ca ira, mais merci.</li>
+				<li class="no">Que se passe-t-il ? Le gadget se met à dysfonctionner !</li>
+			</ul>
+
+
+			<h2>Boss</h2>
+			<ul>
+				<li>Un</li>
+				<li>Deux</li>
+				<li>Trois</li>
+				<li>Quatre</li>
+				<li>Cinq</li>
+				<br>
+
+				<li>Fois</li>
+				<li>Et</li>
+				<br>
+
+				<li>Haut</li>
+				<li>Bas</li>
+				<li>Gauche</li>
+				<li>Droite</li>
+				<br>
+
+				<li>Yah</li>(Assigne un coup)
+				<br>
+
+				<li>Aïe, Ouch, Ouf</li>(Touché)
+			</ul>
+
+			<h2>Marchand</h2>
+			<ul>
+				<li>Et</li>
+				<br>
+
+				<li>Haut</li>
+				<li>Bas</li>
+				<li>Gauche</li>
+				<li>Droite</li>
+			</ul>
+
+			Les suivants n'ont besoin que de deux ou trois versions.
+			<ul>
+				<li class="no">Voici pour vous.</li>
+				<li class="no">Pas de problème.</li>
+				<li class="no">Dommage.</li>
+			</ul>
+		</div>
+
+		v 1.2
+	</article>
+
+</body>
+</html>
