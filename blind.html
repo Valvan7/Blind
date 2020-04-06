@@ -4,7 +4,7 @@
 	<title>Blind</title>
 	<meta charset="utf-8"/>
 	<style type="text/css">
-html
+html, a
 {
 	color: #FFF;
 	background-color: #000;
@@ -111,111 +111,123 @@ article > div
 <body>
 	<canvas id="particules"></canvas>
 	<script type="text/javascript">
-const canvas = document.getElementById('particules');
-const ctx = canvas.getContext('2d');
 
-canvas.width = 1920;
-canvas.height = 1080;
+let args = {}
+window.location.search.slice(1).split("&").forEach( function(e) {
+	args[e.split("=")[0]] = (e.split("=")[1] ? e.split("=")[1] : true) 
+});
 
-const FPS = 120;
-const myInterval = setInterval(() =>
+if (! args.nocanvas)
 {
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	const canvas = document.getElementById('particules');
+	const ctx = canvas.getContext('2d');
 
-	particules.forEach((p)=>{ p.move() });
-	particules.forEach((p)=>{ p.draw() });
-}, 1000/FPS);
+	canvas.width = 1920;
+	canvas.height = 1080;
 
-
-function Particule(m, p)
-{
-	this.motion = m;
-	this.position = p;
-	this.toSin = Math.random();
-
-	this.regenerate = function()
+	const FPS = 120;
+	const myInterval = setInterval(() =>
 	{
-		if (this.position.x > canvas.width + this.position.z)
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		particules.forEach((p)=>{ p.move() });
+		particules.forEach((p)=>{ p.draw() });
+	}, 1000/FPS);
+
+
+	function Particule(m, p)
+	{
+		this.motion = m;
+		this.position = p;
+		this.toSin = Math.random();
+
+		this.regenerate = function()
 		{
-			this.position.x = - this.position.z;
-			this.position.y = Math.random() * canvas.height;
+			if (this.position.x > canvas.width + this.position.z)
+			{
+				this.position.x = - this.position.z;
+				this.position.y = Math.random() * canvas.height;
+			}
+			else if (this.position.x < - this.position.z)
+			{
+				this.position.x = canvas.width + this.position.z;
+				this.position.y = Math.random() * canvas.height;
+			}
+			else if (this.position.y > canvas.height + this.position.z)
+			{
+				this.position.x = Math.random() * canvas.width;
+				this.position.y = - this.position.z;
+			}
+			else if (this.position.y < - this.position.z)
+			{
+				this.position.x = Math.random() * canvas.width;
+				this.position.y = canvas.height + this.position.z;
+			}
 		}
-		else if (this.position.x < - this.position.z)
+
+		this.move = function()
 		{
-			this.position.x = canvas.width + this.position.z;
-			this.position.y = Math.random() * canvas.height;
+			this.position.x += this.motion.x
+			this.position.y += this.motion.y * Math.sin(this.toSin);
+			this.position.z += this.motion.z;
+
+			this.toSin += 0.007;
+			this.regenerate();
 		}
-		else if (this.position.y > canvas.height + this.position.z)
+
+		this.draw = function()
 		{
-			this.position.x = Math.random() * canvas.width;
-			this.position.y = - this.position.z;
-		}
-		else if (this.position.y < - this.position.z)
-		{
-			this.position.x = Math.random() * canvas.width;
-			this.position.y = canvas.height + this.position.z;
+			// ctx.beginPath();
+			// ctx.arc(this.position.x, this.position.y, this.position.z, 0, 2 * Math.PI);
+			// ctx.fillStyle = "rgba(0, 50, 255)";
+			// ctx.fill();
+			color = [ 255 - this.position.x * 127 / canvas.width - (this.position.z - 22.5)*3,
+					  0,
+					  63 + this.position.x * 127 / canvas.width + (this.position.z - 22.5)*3 ]
+
+			degrade = ctx.createRadialGradient(
+				this.position.x, this.position.y, 0,
+				this.position.x, this.position.y, this.position.z );
+			degrade.addColorStop(0, "rgba("+ color +", 0.8)");
+			degrade.addColorStop(0.7, "rgba("+ color +", 0.7)");
+			degrade.addColorStop(1, "rgba("+ color +", 0)");
+			ctx.fillStyle = degrade;
+			ctx.fillRect(this.position.x - this.position.z,
+				this.position.y - this.position.z,
+				this.position.x + this.position.z,
+				this.position.y + this.position.z);
 		}
 	}
 
-	this.move = function()
+
+	let particules = []
+	for (var i = 0; i < 200; i += 1)
 	{
-		this.position.x += this.motion.x
-		this.position.y += this.motion.y * Math.sin(this.toSin);
-		this.position.z += this.motion.z;
+		const position = {
+			x: Math.random() * canvas.width,
+			y: Math.random() * canvas.height,
+			z: 15 + Math.random() * 15
+		};
 
-		this.toSin += 0.007;
-		this.regenerate();
-	}
+		const uniRand = Math.random()
 
-	this.draw = function()
-	{
-		// ctx.beginPath();
-		// ctx.arc(this.position.x, this.position.y, this.position.z, 0, 2 * Math.PI);
-		// ctx.fillStyle = "rgba(0, 50, 255)";
-		// ctx.fill();
-		color = [ 255 - this.position.x * 127 / canvas.width - (this.position.z - 22.5)*3,
-				  0,
-				  63 + this.position.x * 127 / canvas.width + (this.position.z - 22.5)*3 ]
+		const motion = {
+			x: Math.random() * 0.1 + 0.1,
+			y: Math.random() * 0.1 - 0.05 ,
+			z: 0
+		};
 
-		degrade = ctx.createRadialGradient(
-			this.position.x, this.position.y, 0,
-			this.position.x, this.position.y, this.position.z );
-		degrade.addColorStop(0, "rgba("+ color +", 0.8)");
-		degrade.addColorStop(0.7, "rgba("+ color +", 0.7)");
-		degrade.addColorStop(1, "rgba("+ color +", 0)");
-		ctx.fillStyle = degrade;
-		ctx.fillRect(this.position.x - this.position.z,
-			this.position.y - this.position.z,
-			this.position.x + this.position.z,
-			this.position.y + this.position.z);
+		particules.push( new Particule(motion, position, 5) );
 	}
 }
 
-
-let particules = []
-for (var i = 0; i < 200; i += 1)
-{
-	const position = {
-		x: Math.random() * canvas.width,
-		y: Math.random() * canvas.height,
-		z: 15 + Math.random() * 15
-	};
-
-	const uniRand = Math.random()
-
-	const motion = {
-		x: Math.random() * 0.1 + 0.1,
-		y: Math.random() * 0.1 - 0.05 ,
-		z: 0
-	};
-
-	particules.push( new Particule(motion, position, 5) );
-}
 	</script>
 
 
-
 	<article>
+
+		<a href="blind.html?nocanvas">Sans particules</a>
+
 
 		<div>
 			<h1>Projet</h1>
